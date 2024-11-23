@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### jetbrians jetclient ###
+.jetclient
