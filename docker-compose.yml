@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   ums:
     build:
@@ -9,25 +8,47 @@ services:
       - "8080:8080"
     environment:
       - SERVER_PORT=8080
-      - MYSQL_URL=mysqlserver
+      - DB_URI=mongodb://ums:ums@mongoserver:27017
+      - DB_NAME=ums
     volumes:
       - ./:/app
+      - ${MAVEN_LOCAL_REPO:-/root/.m2}:/root/.m2
     depends_on:
-      - mysqlserver
+      - mongoserver
+    networks:
+      - ums-net
+    container_name: ums
 
-  mysqlserver:
-    image: mysql:8.0
+  mongoserver:
+    image: mongo:latest
     ports:
-      - "3306:3306"
+      - "27017:27017"
     environment:
-      - MYSQL_ROOT_PASSWORD=
-      - MYSQL_ALLOW_EMPTY_PASSWORD=true
-      - MYSQL_USER=ums
-      - MYSQL_PASSWORD=ums
-      - MYSQL_DATABASE=ums
+      - MONGO_INITDB_ROOT_USERNAME=ums
+      - MONGO_INITDB_ROOT_PASSWORD=ums
+      - MONGO_INITDB_DATABASE=ums
     volumes:
-      - mysql_data:/home/naim/var/lib/mysql
-      - mysql_config:/home/naim/etc/mysql/conf.d
+      - mongodb_data:/data/db
+    networks:
+      - ums-net
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=ums
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=ums
+      - ME_CONFIG_MONGODB_URL=mongodb://ums:ums@mongoserver:27017/
+      - ME_CONFIG_BASICAUTH=false
+    depends_on:
+      - mongoserver
+    networks:
+      - ums-net
+
+networks:
+  ums-net:
+    driver: bridge
+
 volumes:
-  mysql_data:
-  mysql_config:
+  mongodb_data:
