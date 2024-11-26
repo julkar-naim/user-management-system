@@ -1,12 +1,9 @@
 package naim.julkar.usermanagementsystem.service;
 
-import jakarta.validation.Valid;
 import java.util.List;
-import java.util.stream.StreamSupport;
-import naim.julkar.usermanagementsystem.dto.UserDto;
-import naim.julkar.usermanagementsystem.entity.GeneralUser;
+import naim.julkar.usermanagementsystem.exception.UserNameAlreadyExistsException;
+import naim.julkar.usermanagementsystem.model.User;
 import naim.julkar.usermanagementsystem.repository.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,21 +11,16 @@ import org.springframework.stereotype.Service;
 public class UserManager {
 
     @Autowired
-    private ModelMapper modelMapper;
-
-    @Autowired
     private UserRepository userRepository;
 
-    public List<UserDto> getAllUser() {
-        return StreamSupport.stream(
-            userRepository.findAll().spliterator(),
-            false
-        )
-            .map(generalUser -> modelMapper.map(generalUser, UserDto.class))
-            .toList();
+    public List<User> getAllUser() {
+        return userRepository.findAll().stream().toList();
     }
 
-    public void addNewUser(@Valid GeneralUser generalUser) {
-        userRepository.save(generalUser);
+    public void addNewUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new UserNameAlreadyExistsException("Username already exists");
+        }
+        userRepository.save(user);
     }
 }

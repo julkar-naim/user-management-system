@@ -34,3 +34,5 @@ build/
 
 ### jetbrians jetclient ###
 .jetclient
+.aider*
+.env
